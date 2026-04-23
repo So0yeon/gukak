@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>음악실의 괴담: 봉인된 단소 명인의 편지</title>
+<style>
+  /* ===== 폰트 임포트 ===== */
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap');
+
+  /* ===== CSS 변수 ===== */
+  :root {
+    --bg-dark: #0a0608;
+    --bg-mid: #120d10;
+    --bg-card: #1a0f14;
+    --red-blood: #8b0000;
+    --red-bright: #cc0000;
+    --red-glow: #ff1111;
+    --green-ok: #00cc66;
+    --gold: #c8a84b;
+    --text-white: #f0e8e8;
+    --text-dim: #a08888;
+    --border-dark: #3a1a1a;
+    --shadow-red: 0 0 20px rgba(139,0,0,0.5);
+    --shadow-green: 0 0 20px rgba(0,204,102,0.5);
+  }
+
+  /* ===== 전체 리셋 및 기본 스타일 ===== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-dark);
+    color: var(--text-white);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* ===== 배경 노이즈 텍스처 ===== */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(139,0,0,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(139,0,0,0.05) 0%, transparent 40%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== 스크린 (화면 전환 단위) ===== */
+  .screen {
+    display: none;
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    padding: 20px;
+    animation: fadeIn 0.6s ease;
+  }
+  .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== 시작 화면 ===== */
+  #screen-intro {
+    text-align: center;
+    gap: 24px;
+  }
+
+  .intro-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(1.6rem, 5vw, 2.8rem);
+    font-weight: 900;
+    color: var(--red-glow);
+    text-shadow: 0 0 30px rgba(255,17,17,0.8), 0 0 60px rgba(255,17,17,0.3);
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+    animation: flicker 3s infinite;
+  }
+
+  @keyframes flicker {
+    0%,100% { opacity: 1; }
+    92% { opacity: 1; }
+    93% { opacity: 0.7; }
+    94% { opacity: 1; }
+    96% { opacity: 0.5; }
+    97% { opacity: 1; }
+  }
+
+  .intro-subtitle {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+    color: var(--gold);
+    letter-spacing: 0.1em;
+  }
+
+  .intro-story {
+    max-width: 600px;
+    background: rgba(26,15,20,0.9);
+    border: 1px solid var(--red-blood);
+    border-radius: 8px;
+    padding: 24px;
+    font-size: clamp(0.85rem, 2vw, 1rem);
+    color: var(--text-dim);
+    line-height: 1.8;
+    box-shadow: var(--shadow-red), inset 0 0 40px rgba(0,0,0,0.5);
+  }
+
+  .intro-story strong { color: var(--red-glow); }
+
+  .btn-start {
+    background: var(--red-blood);
+    color: var(--text-white);
+    border: 2px solid var(--red-bright);
+    padding: 16px 48px;
+    font-size: 1.2rem;
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.15em;
+    transition: all 0.2s;
+    box-shadow: var(--shadow-red);
+    animation: pulse-red 2s infinite;
+  }
+
+  .btn-start:hover {
+    background: var(--red-bright);
+    box-shadow: 0 0 30px rgba(204,0,0,0.8);
+    transform: scale(1.03);
+  }
+
+  @keyframes pulse-red {
+    0%,100% { box-shadow: 0 0 10px rgba(139,0,0,0.5); }
+    50% { box-shadow: 0 0 25px rgba(204,0,0,0.8); }
+  }
+
+  /* ===== HUD (타이머, 진행바) ===== */
+  #hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(10,6,8,0.95);
+    border-bottom: 1px solid var(--red-blood);
+    padding: 10px 20px;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+  }
+  #hud.visible { display: flex; }
+
+  .hud-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  #timer-display {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--red-glow);
+    text-shadow: 0 0 10px rgba(255,17,17,0.6);
+    letter-spacing: 0.1em;
+    min-width: 80px;
+  }
+  #timer-display.urgent { animation: blink 0.5s infinite; color: #ff4444; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .hud-stage-label {
+    font-size: 0.85rem;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    text-align: center;
+    flex: 1;
+  }
+
+  #score-display {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    min-width: 80px;
+    text-align: right;
+  }
+
+  /* 진행바 */
+  .progress-bar-wrap {
+    background: rgba(58,26,26,0.5);
+    border-radius: 2px;
+    height: 4px;
+    overflow: hidden;
+  }
+  #progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red-blood), var(--red-glow));
+    border-radius: 2px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 8px rgba(255,17,17,0.5);
+  }
+
+  /* ===== 스토리 화면 (단계 전환 스토리) ===== */
+  #screen-story {
+    gap: 20px;
+    text-align: center;
+    padding-top: 80px;
+  }
+
+  .story-stage-num {
+    font-size: 0.8rem;
+    color: var(--red-blood);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .story-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    font-weight: 900;
+    color: var(--red-glow);
+    text-shadow: 0 0 20px rgba(255,17,17,0.6);
+  }
+
+  .story-text {
+    max-width: 580px;
+    background: rgba(26,15,20,0.9);
+    border: 1px solid var(--border-dark);
+    border-left: 3px solid var(--red-blood);
+    padding: 20px 24px;
+    font-size: clamp(0.9rem, 2.2vw, 1.05rem);
+    color: var(--text-dim);
+    line-height: 1.9;
+    text-align: left;
+    border-radius: 4px;
+  }
+
+  .story-text em { color: var(--gold); font-style: normal; }
+  .story-text strong { color: var(--red-glow); }
+
+  .btn-continue {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 12px 36px;
+    font-size: 1rem;
+    font-family: 'Noto Serif KR', serif;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+  }
+  .btn-continue:hover { background: rgba(200,168,75,0.15); box-shadow: 0 0 15px rgba(200,168,75,0.3); }
+
+  /* ===== 퀴즈 화면 ===== */
+  #screen-quiz {
+    padding-top: 80px;
+    gap: 20px;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .quiz-narrative {
+    width: 100%;
+    font-size: 0.9rem;
+    color: var(--red-bright);
+    text-align: center;
+    font-style: italic;
+    min-height: 24px;
+    letter-spacing: 0.05em;
+  }
+
+  .quiz-card {
+    width: 100%;
+    background: rgba(26,15,20,0.95);
+    border: 1px solid var(--border-dark);
+    border-radius: 8px;
+    padding: 28px;
+    box-shadow: var(--shadow-red), inset 0 0 50px rgba(0,0,0,0.3);
+    transition: transform 0.1s;
+  }
+
+  .quiz-card.shake {
+    animation: shake 0.4s ease;
+    border-color: var(--red-bright);
+    box-shadow: 0 0 30px rgba(204,0,0,0.8);
+  }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+
+  .quiz-card.glow-green {
+    border-color: var(--green-ok);
+    box-shadow: var(--shadow-green);
+  }
+
+  .quiz-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .quiz-badge {
+    font-size: 0.75rem;
+    background: var(--red-blood);
+    color: var(--text-white);
+    padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: 0.08em;
+  }
+
+  .quiz-qnum {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+
+  .quiz-question {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    line-height: 1.7;
+    color: var(--text-white);
+    margin-bottom: 24px;
+  }
+
+  /* 선택지 버튼 */
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .option-btn {
+    background: rgba(58,26,26,0.4);
+    border: 1px solid var(--border-dark);
+    color: var(--text-white);
+    padding: 14px 12px;
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
+    font-family: 'Noto Sans KR', sans-serif;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    line-height: 1.5;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    background: rgba(139,0,0,0.3);
+    border-color: var(--red-blood);
+    transform: translateY(-1px);
+  }
+
+  .option-btn.correct {
+    background: rgba(0,100,50,0.4);
+    border-color: var(--green-ok);
+    color: #88ffcc;
+    box-shadow: 0 0 12px rgba(0,204,102,0.3);
+  }
+
+  .option-btn.wrong {
+    background: rgba(139,0,0,0.3);
+    border-color: var(--red-bright);
+    color: #ff8888;
+  }
+
+  .option-btn:disabled { cursor: not-allowed; }
+
+  /* 피드백 박스 */
+  .feedback-box {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    display: none;
+  }
+
+  .feedback-box.show { display: block; animation: fadeIn 0.3s ease; }
+  .feedback-box.correct { background: rgba(0,80,40,0.4); border: 1px solid var(--green-ok); color: #88ffcc; }
+  .feedback-box.wrong { background: rgba(80,0,0,0.4); border: 1px solid var(--red-bright); color: #ff9999; }
+
+  .feedback-icon { font-size: 1.2rem; margin-right: 6px; }
+
+  /* 다음 버튼 */
+  .btn-next {
+    display: none;
+    background: var(--red-blood);
+    color: var(--text-white);
+    border: 1px solid var(--red-bright);
+    padding: 12px 32px;
+    font-size: 1rem;
+    font-family: 'Noto Serif KR', serif;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+    align-self: flex-end;
+  }
+  .btn-next.show { display: block; animation: fadeIn 0.3s ease; }
+  .btn-next:hover { background: var(--red-bright); transform: scale(1.03); }
+
+  /* ===== 클리어 화면 ===== */
+  #screen-clear {
+    gap: 20px;
+    text-align: center;
+    padding-top: 80px;
+  }
+
+  .clear-icon { font-size: 3rem; animation: bounceIn 0.5s ease; }
+  @keyframes bounceIn { 0%{transform:scale(0)} 60%{transform:scale(1.15)} 100%{transform:scale(1)} }
+
+  .clear-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(1.3rem, 4vw, 2rem);
+    font-weight: 900;
+    color: var(--green-ok);
+    text-shadow: 0 0 20px rgba(0,204,102,0.6);
+  }
+
+  .clear-text {
+    max-width: 500px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    font-size: 0.95rem;
+  }
+
+  /* ===== 최종 탈출 화면 ===== */
+  #screen-final {
+    gap: 24px;
+    text-align: center;
+    padding-top: 80px;
+  }
+
+  .final-story {
+    max-width: 580px;
+    background: rgba(26,15,20,0.9);
+    border: 1px solid var(--red-blood);
+    padding: 20px 24px;
+    border-radius: 6px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    font-size: 0.95rem;
+  }
+
+  .final-story strong { color: var(--red-glow); }
+
+  /* ===== 승리/패배 화면 ===== */
+  #screen-victory, #screen-gameover {
+    gap: 24px;
+    text-align: center;
+  }
+
+  .victory-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(200,168,75,0.8);
+    animation: goldShine 2s infinite;
+  }
+
+  @keyframes goldShine {
+    0%,100%{text-shadow:0 0 20px rgba(200,168,75,0.5)}
+    50%{text-shadow:0 0 40px rgba(200,168,75,1),0 0 80px rgba(200,168,75,0.4)}
+  }
+
+  .gameover-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    font-weight: 900;
+    color: var(--red-glow);
+    text-shadow: 0 0 30px rgba(255,17,17,0.8);
+    animation: flicker 0.5s infinite;
+  }
+
+  .result-box {
+    max-width: 500px;
+    background: rgba(26,15,20,0.9);
+    border: 1px solid var(--border-dark);
+    padding: 24px;
+    border-radius: 8px;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  .result-score {
+    font-size: 2rem;
+    font-family: 'Noto Serif KR', serif;
+    color: var(--gold);
+    margin-top: 12px;
+  }
+
+  /* 폭죽 파티클 */
+  .confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 200;
+    overflow: hidden;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 8px;
+    height: 12px;
+    top: -20px;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+  }
+
+  @keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  .btn-retry {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 12px 36px;
+    font-size: 1rem;
+    font-family: 'Noto Serif KR', serif;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .btn-retry:hover { background: rgba(200,168,75,0.15); }
+
+  /* ===== 오답 제재: 붉은 화면 플래시 ===== */
+  #penalty-flash {
+    position: fixed;
+    inset: 0;
+    background: rgba(180, 0, 0, 0.55);
+    pointer-events: none;
+    z-index: 500;
+    opacity: 0;
+    transition: none;
+  }
+  #penalty-flash.flash {
+    animation: redFlash 0.7s ease-out forwards;
+  }
+  @keyframes redFlash {
+    0%   { opacity: 1; }
+    30%  { opacity: 0.8; }
+    100% { opacity: 0; }
+  }
+
+  /* ===== 오답 제재: -10초 팝업 텍스트 ===== */
+  #penalty-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.6);
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(2.5rem, 10vw, 5rem);
+    font-weight: 900;
+    color: #ff2222;
+    text-shadow: 0 0 30px rgba(255,0,0,0.9), 0 0 60px rgba(255,0,0,0.4);
+    pointer-events: none;
+    z-index: 600;
+    opacity: 0;
+    white-space: nowrap;
+  }
+  #penalty-popup.show {
+    animation: penaltyPop 1s cubic-bezier(0.22,1,0.36,1) forwards;
+  }
+  @keyframes penaltyPop {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+    50%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    80%  { opacity: 1; transform: translate(-50%, -60%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -80%) scale(0.9); }
+  }
+
+  /* ===== 오답 제재: 타이머 흔들림 + 붉게 터짐 ===== */
+  #timer-display.penalty-shake {
+    animation: timerShake 0.5s ease, timerRedPulse 0.5s ease !important;
+  }
+  @keyframes timerShake {
+    0%,100% { transform: translateX(0); }
+    15%  { transform: translateX(-6px) rotate(-3deg); }
+    30%  { transform: translateX(6px) rotate(3deg); }
+    45%  { transform: translateX(-5px); }
+    60%  { transform: translateX(5px); }
+    75%  { transform: translateX(-3px); }
+  }
+  @keyframes timerRedPulse {
+    0%,100% { color: var(--red-glow); text-shadow: 0 0 10px rgba(255,17,17,0.6); }
+    30%  { color: #ffffff; text-shadow: 0 0 30px #ff0000, 0 0 60px #ff0000; }
+    60%  { color: #ff4444; text-shadow: 0 0 20px rgba(255,17,17,0.9); }
+  }
+
+  /* ===== 오답 제재: HUD 테두리 번쩍 ===== */
+  #hud.penalty-border {
+    animation: hudFlash 0.6s ease forwards;
+  }
+  @keyframes hudFlash {
+    0%,100% { border-bottom-color: var(--red-blood); box-shadow: none; }
+    30%  { border-bottom-color: #ff0000; box-shadow: 0 4px 30px rgba(255,0,0,0.8); }
+    60%  { border-bottom-color: #ff4444; box-shadow: 0 2px 15px rgba(255,0,0,0.5); }
+  }
+
+  /* ===== 반응형 ===== */
+  @media (max-width: 480px) {
+    .options-grid { grid-template-columns: 1fr; }
+    #screen-quiz { padding: 72px 12px 20px; }
+    .quiz-card { padding: 20px 16px; }
+  }
+
+  /* ===== 스크롤바 ===== */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-dark); }
+  ::-webkit-scrollbar-thumb { background: var(--red-blood); border-radius: 3px; }
+
+  /* ===== 최종 퀴즈 특수 연출 ===== */
+  #screen-quiz.final-stage .quiz-card {
+    border-color: var(--gold);
+    box-shadow: 0 0 30px rgba(200,168,75,0.3), inset 0 0 50px rgba(0,0,0,0.5);
+  }
+
+  /* 별표 장식 */
+  .deco-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--red-blood);
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+  }
+  .deco-line::before, .deco-line::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--red-blood), transparent);
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HUD (고정 상단 바) ===== -->
+<div id="hud">
+  <div class="hud-top">
+    <div id="timer-display">⏳ 10:00</div>
+    <div class="hud-stage-label" id="hud-stage-label">음악실의 괴담</div>
+    <div id="score-display">점수: 0</div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div id="progress-bar" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- ===== 시작 화면 ===== -->
+<div id="screen-intro" class="screen active">
+  <div class="intro-title">🎵 음악실의 괴담<br>봉인된 단소 명인의 편지</div>
+  <div class="deco-line">어둠 속에서 문이 열린다</div>
+  <div class="intro-story">
+    <p>…창문이 <strong>'쿵'</strong> 소리를 내며 닫힌다.</p>
+    <p>불이 깜빡이고, 칠판에 붉은 글씨가 떠오른다.</p>
+    <br>
+    <p><strong>"봉인된 단소 명인의 악보를 건드린 자…<br>정간보의 비밀을 풀지 못하면,<br>영원히 이곳에 남게 될 것이다."</strong></p>
+    <br>
+    <p>이 음악실에 들어온 순간, 너희는 선택받았다.</p>
+    <p>…탈출하려면 문제를 풀어야 해.</p>
+  </div>
+  <div class="intro-subtitle">총 3단계 · 20문제 · 제한 시간 10분</div>
+  <button class="btn-start" onclick="startGame()">🚪 음악실 입장</button>
+</div>
+
+<!-- ===== 스토리 화면 ===== -->
+<div id="screen-story" class="screen">
+  <div class="story-stage-num" id="story-stage-num"></div>
+  <div class="story-title" id="story-title"></div>
+  <div class="deco-line" id="story-deco"></div>
+  <div class="story-text" id="story-text"></div>
+  <button class="btn-continue" onclick="startStageQuiz()">▶ 계속하기</button>
+</div>
+
+<!-- ===== 퀴즈 화면 ===== -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-narrative" id="quiz-narrative"></div>
+  <div class="quiz-card" id="quiz-card">
+    <div class="quiz-meta">
+      <span class="quiz-badge" id="quiz-badge">1단계</span>
+      <span class="quiz-qnum" id="quiz-qnum">Q1 / 7</span>
+    </div>
+    <div class="quiz-question" id="quiz-question">문제가 여기에 표시됩니다.</div>
+    <div class="options-grid" id="options-grid"></div>
+    <div class="feedback-box" id="feedback-box"></div>
+  </div>
+  <button class="btn-next" id="btn-next" onclick="nextQuestion()">다음 문제 →</button>
+</div>
+
+<!-- ===== 클리어 화면 ===== -->
+<div id="screen-clear" class="screen">
+  <div class="clear-icon" id="clear-icon">🗝️</div>
+  <div class="clear-title" id="clear-title">1단계 통과!</div>
+  <div class="deco-line"></div>
+  <div class="clear-text" id="clear-text"></div>
+  <button class="btn-continue" onclick="proceedAfterClear()">다음 단계로 →</button>
+</div>
+
+<!-- ===== 최종 탈출 퀴즈 (Q20) ===== -->
+<div id="screen-final" class="screen">
+  <div class="story-title" style="color:var(--gold)">🚪 최종 봉인 해제</div>
+  <div class="final-story">
+    <p>방 전체가 흔들린다.</p>
+    <p><strong>"이제 마지막이다… 모든 것을 합쳐라…"</strong></p>
+    <br>
+    <p>단소의 비밀을 담은 마지막 문제가 너희를 기다리고 있다.</p>
+  </div>
+  <button class="btn-continue" onclick="startFinalQuestion()">⚡ 마지막 문제 도전!</button>
+</div>
+
+<!-- ===== 승리 화면 ===== -->
+<div id="screen-victory" class="screen">
+  <div class="victory-title" id="victory-title">🎉 탈출 성공!</div>
+  <div class="deco-line">봉인이 해제되었다</div>
+  <div class="result-box" style="max-width:560px">
+    <p style="font-size:1.1rem;line-height:2;color:var(--text-white)">
+      <strong style="color:var(--red-glow)">"쿵!!!"</strong>
+    </p>
+    <p style="color:var(--text-dim);line-height:1.9">
+      굳게 잠겼던 음악실 문이 <strong style="color:var(--gold)">천천히, 그리고 힘차게</strong> 열린다.<br>
+      오랫동안 꺼져있던 불이 하나씩 켜지고,<br>
+      어둠 속에 갇혀있던 단소의 선율이<br>
+      <strong style="color:var(--gold)">맑고 밝게</strong> 온 음악실을 가득 채운다.
+    </p>
+    <br>
+    <p style="color:var(--text-dim);line-height:1.9">
+      먼지 쌓인 악보 위에 빛이 내려앉으며,<br>
+      봉인됐던 명인의 편지가 스스로 펼쳐진다.
+    </p>
+    <br>
+    <p style="font-family:'Noto Serif KR',serif;font-size:1.1rem;color:var(--gold);line-height:2;border-left:3px solid var(--gold);padding-left:16px;font-style:italic">
+      "이 소리를 기억해라.<br>
+      단소의 숨결은 수백 년을 넘어<br>
+      오늘, 너희의 손끝에서 다시 살아났다.<br>
+      너희는 진정한 단소 명인이다."
+    </p>
+    <div class="result-score" id="victory-score" style="margin-top:20px"></div>
+  </div>
+  <button class="btn-retry" onclick="resetGame()">🔄 다시 도전하기</button>
+</div>
+
+<!-- ===== 게임 오버 화면 ===== -->
+<div id="screen-gameover" class="screen">
+  <div class="gameover-title">💀 탈출 실패…</div>
+  <div class="deco-line" style="color:var(--red-blood)">시간이 다 흘러버렸다</div>
+  <div class="result-box">
+    <p>시간이 다 되어 버렸다.</p>
+    <br>
+    <p><strong style="color:var(--red-glow)">"...결국 이곳에 영원히 남게 되었구나."</strong></p>
+    <div class="result-score" id="gameover-score"></div>
+  </div>
+  <button class="btn-retry" onclick="resetGame()">🔄 다시 도전하기</button>
+</div>
+
+<!-- 폭죽 컨테이너 -->
+<div class="confetti-container" id="confetti-container"></div>
+
+<!-- 오답 제재: 붉은 화면 플래시 오버레이 -->
+<div id="penalty-flash"></div>
+
+<!-- 오답 제재: -10초 팝업 텍스트 -->
+<div id="penalty-popup">⏳ -10초!</div>
+
+<script>
+// ============================================================
+// ===== 데이터: 퀴즈 문제 모음 =====
+// ============================================================
+
+const STAGES = [
+  // ====== 1단계: 율명의 방 ======
+  {
+    id: 1,
+    title: "어둠 속의 암호: 율명의 방",
+    deco: "음의 이름과 한자",
+    story: `"끼이익—"\n\n음악실 문이 스스로 잠긴다. 칠판 위에 붉은 한자들이 하나씩 떠오른다.\n\n바닥에서 낮게 울리는 단소 소리…\n\n<strong>"이 소리의 이름을 맞혀라…"</strong>`,
+    clearIcon: "🗝️",
+    clearTitle: "철컥—! 1단계 통과!",
+    clearText: "문이 천천히 열린다.\n\"생각보다 잘하는군… 하지만 이제 시작일 뿐이다…\"",
+    questions: [
+      {
+        narrative: "칠판에 피로 적힌 한자들이 빛나기 시작한다…",
+        question: "단소에서 가장 기본이 되는 5가지 음(율명)을 낮은 음부터 높은 음 순서대로 바르게 나열한 것은?",
+        options: ["① 태, 황, 무, 임, 중", "② 중, 임, 무, 황, 태", "③ 황, 태, 중, 임, 무", "④ 임, 무, 황, 태, 중"],
+        answer: 1,
+        feedback: { correct: "좋아, 기본은 알고 있군. '중'이 가장 낮고 '태'가 가장 높은 소리란다.", wrong: "낮은 음부터 차례로: 중 → 임 → 무 → 황 → 태" }
+      },
+      {
+        narrative: "구석에 떨어진 악보 조각에 빛나는 한자가 있다…",
+        question: "구석에 떨어진 악보 조각에 '黃'이라는 글자가 빛나고 있다. 이 율명의 이름은 무엇일까?",
+        options: ["① 중", "② 무", "③ 황", "④ 태"],
+        answer: 2,
+        feedback: { correct: "누를 황(黃)! 노란빛이 감도는 소리, '황'이다.", wrong: "黃(황)은 '황'이라고 읽는단다." }
+      },
+      {
+        narrative: "스피커에서 으스스한 낮은 음이 울려 퍼진다…",
+        question: "스피커에서 갑자기 가장 낮은 소리가 으스스하게 울려 퍼진다. 단소의 5음 중 가장 낮은 소리를 내는 율명은?",
+        options: ["① 중", "② 임", "③ 황", "④ 태"],
+        answer: 0,
+        feedback: { correct: "버금 중(仲). 구멍을 가장 많이 막아서 깊고 묵직한 소리가 나지.", wrong: "가장 낮은 소리는 '중'이야. 구멍을 가장 많이 막는다고 기억해!" }
+      },
+      {
+        narrative: "귀신이 속삭인다… '가장 높고 날카로운 내 목소리를 찾아봐…'",
+        question: "\"가장 높고 날카로운 내 목소리를 찾아봐...\" 다음 중 가장 높은 음을 내는 율명 한자는?",
+        options: ["① 仲 (중)", "② 林 (임)", "③ 無 (무)", "④ 太 (태)"],
+        answer: 3,
+        feedback: { correct: "클 태(太). 구멍을 하나만 막아 가장 가볍고 높은 소리가 난단다.", wrong: "太(태)가 가장 높은 소리야. 획이 크고 힘차게 생겼지?" }
+      },
+      {
+        narrative: "바닥에 자물쇠가 있다. 이름을 알아야 열린다…",
+        question: "바닥에 '林'이라는 글자가 적힌 자물쇠가 있다. 이 자물쇠를 열기 위한 암호(이름)는?",
+        options: ["① 임", "② 황", "③ 무", "④ 태"],
+        answer: 0,
+        feedback: { correct: "수풀 림(林)! 숲처럼 청아한 소리, '임' 자물쇠가 열렸다.", wrong: "林은 '수풀 림'으로 '임'이라고 읽어." }
+      },
+      {
+        narrative: "저주받은 글자가 숨어 있다… 찾아내야 한다…",
+        question: "다음 중 한자와 율명 이름이 잘못 짝지어진 저주받은 글자는 어느 것인가?",
+        options: ["① 仲 - 중", "② 無 - 황", "③ 太 - 태", "④ 黃 - 황"],
+        answer: 1,
+        feedback: { correct: "찾아냈군. 無는 '무'라고 읽어야 해. 속을 뻔했어!", wrong: "잘 살펴봐. 無(무)를 '황'이라고 한 것이 틀렸어!" }
+      },
+      {
+        narrative: "칠판이 갈라지며 자물쇠가 등장한다… 순서를 틀리면… 다시 처음이다…",
+        question: "🔐 최종 암호: 율명들을 소리가 높은 순서부터(높→낮) 나열한 것은?",
+        options: ["① 태-황-무-임-중", "② 중-임-무-황-태", "③ 무-황-태-중-임", "④ 황-태-무-임-중"],
+        answer: 0,
+        feedback: { correct: "철컥! 1단계 문이 열렸다. 하지만 다음 방은 더 어려울걸?", wrong: "높은 음부터 차례로: 태 → 황 → 무 → 임 → 중" }
+      }
+    ]
+  },
+
+  // ====== 2단계: 정간보의 방 ======
+  {
+    id: 2,
+    title: "봉인된 악보: 정간보의 방",
+    deco: "악보 읽는 법",
+    story: `문을 열고 들어가자 벽 전체가 우물 정(井) 모양의 칸으로 가득하다.\n\n악보가 벽에서 꿈틀거린다.\n\n<strong>"이 악보를 읽지 못하면… 시간 속에 갇히게 된다…"</strong>`,
+    clearIcon: "📜",
+    clearTitle: "2단계 통과!",
+    clearText: "악보가 찢어지며 빛으로 변한다.\n\"이제 마지막이다… 네 손으로 직접 연주해라…\"",
+    questions: [
+      {
+        narrative: "벽면 전체에 우물 정(井) 모양의 칸들이 가득하다…",
+        question: "벽에 그려진 이 우물 정(井)자 모양의 칸으로 이루어진 옛날 악보의 진짜 이름은 무엇일까?",
+        options: ["① 오선보", "② 정간보", "③ 숫자보", "④ 율명보"],
+        answer: 1,
+        feedback: { correct: "정답! 우물 정(井) 자를 닮아 정간보라고 부르지.", wrong: "우물 정(井)자 모양의 칸들로 이루어진 악보는 '정간보'야." }
+      },
+      {
+        narrative: "벽에서 낡은 초상화가 등장한다… '이 악보를 만든 자를… 기억하느냐…'",
+        question: "동양 최초로 음의 길이까지 표현한 이 악보를 만든 조선의 왕은?",
+        options: ["① 태조 이성계", "② 세종대왕", "③ 이순신 장군", "④ 정조"],
+        answer: 1,
+        feedback: { correct: "위대한 세종대왕님이 우리 음악을 위해 직접 창제하셨지.", wrong: "정간보는 세종대왕이 만드셨어. 한글을 만드신 그 왕이야!" }
+      },
+      {
+        narrative: "악보를 읽으려는데 눈이 핑핑 돈다…",
+        question: "정간보를 읽는 올바른 방향을 선택해 저주를 풀어라!",
+        options: ["① 왼쪽→오른쪽으로 줄을 이동하며, 각 줄은 위→아래로 읽는다.", "② 오른쪽→왼쪽으로 줄을 이동하며, 각 줄은 위→아래로 읽는다."],
+        answer: 1,
+        feedback: { correct: "오른쪽 첫 번째 줄의 맨 위칸부터 시작해서 아래로 내려가는 거야!", wrong: "정간보는 오른쪽 줄부터 시작해서 왼쪽으로 이동하고, 각 줄은 위→아래로 읽어!" }
+      },
+      {
+        narrative: "한 칸이 비어보인다… '이 침묵의 의미를 아는가…'",
+        question: "악보를 읽다 보니 아무 글자도 적히지 않은 '빈칸(빈 정간)'이 나타났다! 이 빈칸은 무엇을 의미할까?",
+        options: ["① 한 박 쉬어라 (쉼표)", "② 아무 소리나 마음대로 불어라", "③ 앞의 음을 한 박 더 길게 소리 내라", "④ 노래가 끝났다는 뜻이다"],
+        answer: 2,
+        feedback: { correct: "빈칸은 함정이 아니야. 앞의 음을 끊지 말고 계속 이어서 연주하라는 뜻이지.", wrong: "빈칸 = 앞 음을 한 박 더 연장! 소리를 끊지 말고 이어서 불어야 해." }
+      },
+      {
+        narrative: "악보의 네모 칸 하나… 과연 몇 박일까?",
+        question: "정간보의 네모난 한 칸(1정간)은 기본적으로 음악에서 몇 박을 의미할까?",
+        options: ["① 반 박", "② 1박", "③ 2박", "④ 3박"],
+        answer: 1,
+        feedback: { correct: "맞아. 한 칸은 기본 1박! 두 칸을 차지하면 2박이 되는 원리야.", wrong: "한 칸(1정간) = 1박! 이걸 기억해두면 악보 읽기가 훨씬 쉬워져." }
+      },
+      {
+        narrative: "율명 옆에 작은 세모(△) 모양이 피로 그려져 있다…",
+        question: "율명 옆에 작은 세모(△) 모양이 피로 그려져 있다. 이 기호는 무엇을 하라고 지시하는 걸까?",
+        options: ["① 숨을 크게 쉬어라", "② 그만큼 쉬어라(쉼표)", "③ 강하게 불어라", "④ 약하게 불어라"],
+        answer: 1,
+        feedback: { correct: "세모는 그 칸만큼 소리를 내지 말고 쉬라는(쉼표) 뜻이야.", wrong: "세모(△) = 쉼표! 그 칸만큼 소리를 내지 않고 쉬는 거야." }
+      },
+      {
+        narrative: "두 줄짜리 봉인의 멜로디가 떠오른다… 틀리면… 끝이다…",
+        question: "🔐 귀신이 남긴 악보: 오른쪽 줄 위칸에 '黃(황)', 아래 칸은 '빈칸'. 왼쪽 줄 위칸에 '太(태)', 아래 칸은 '빈칸'. 이 악보를 바르게 연주한 길이는?",
+        options: ["① 황(1박) - 태(1박)", "② 황(2박) - 태(2박)", "③ 태(2박) - 황(2박)", "④ 황(1박) - 쉬고 - 태(1박)"],
+        answer: 1,
+        feedback: { correct: "완벽해! 위→아래로 읽고, 빈칸은 연장이니까 각각 2박씩이야. 2단계 통과!", wrong: "오른쪽부터 읽고, 빈칸은 앞 음 연장! 황(2박)→태(2박)이 정답이야." }
+      }
+    ]
+  },
+
+  // ====== 3단계: 운지법의 방 ======
+  {
+    id: 3,
+    title: "귀신의 손가락: 운지법의 방",
+    deco: "단소 잡는 법",
+    story: `불이 완전히 꺼진다.\n\n어둠 속에서 창백한 손가락들이 둥둥 떠오른다.\n\n"딱… 딱…"\n\n단소 구멍을 막았다 열었다 한다.\n\n<strong>"내 손을 따라 할 수 있겠느냐…"</strong>`,
+    clearIcon: null, // 3단계는 최종 퀴즈로 이어짐
+    clearTitle: null,
+    clearText: null,
+    questions: [
+      {
+        narrative: "창백한 손이 단소를 쥐고 있다…",
+        question: "단소에서 우리가 손가락으로 막고 열 수 있는 지공(구멍)은 앞뒤를 합쳐 총 몇 개일까?",
+        options: ["① 3개", "② 4개", "③ 5개", "④ 6개"],
+        answer: 2,
+        feedback: { correct: "뒤에 1공, 앞에 2,3,4,5공! 총 5개야. (단, 5공은 항상 열어두지)", wrong: "뒤에 1개(1공) + 앞에 4개(2,3,4,5공) = 총 5개!" }
+      },
+      {
+        narrative: "낮고 무거운 소리… '모두 막아라…'",
+        question: "5개의 율명 중 가장 많은 구멍(제1,2,3,4공)을 막아야 나는 소리는?",
+        options: ["① 중", "② 임", "③ 황", "④ 태"],
+        answer: 0,
+        feedback: { correct: "구멍을 다 막아서(5공 제외) 무겁고 낮은 '중' 소리가 나는 거야.", wrong: "구멍을 가장 많이(4개) 막으면 '중' 소리가 나. 낮을수록 많이 막아!" }
+      },
+      {
+        narrative: "갑자기 날카로운 고음이 울린다… '가장 가벼운 소리를 내라…'",
+        question: "모든 구멍을 다 열어두면 어떤 소리가 날까? (1공~4공 전부 열기)",
+        options: ["① 중", "② 임", "③ 황", "④ 태"],
+        answer: 3,
+        feedback: { correct: "맞아! 구멍을 하나도 막지 않으면 가장 가볍고 높은 '태' 소리가 나!", wrong: "구멍을 전혀 막지 않으면 = 태! 구멍을 많이 막을수록 낮은 소리가 나." }
+      },
+      {
+        narrative: "귀신이 명령한다… '임을 연주해라…'",
+        question: "다음 중 '임' 소리를 내기 위한 올바른 귀신의 손가락 모양은?",
+        options: ["① 1, 2, 3공을 막고 4공을 연다.", "② 1공만 막고 나머지는 모두 연다.", "③ 모든 구멍을 다 열어버린다.", "④ 1, 2, 3, 4공을 모두 막는다."],
+        answer: 0,
+        feedback: { correct: "정확해! 1·2·3공을 막고 4공을 열면 '임' 소리가 나지.", wrong: "임 = 1공·2공·3공을 막고, 4공은 여는 거야!" }
+      },
+      {
+        narrative: "마지막으로 거대한 손이 등장한다… '이것이 마지막 음이다…'",
+        question: "다음 중 '황' 소리를 내기 위한 올바른 손가락 모양은?",
+        options: ["① 모든 구멍을 다 연다.", "② 1공만 막고 나머지는 모두 연다.", "③ 1, 2공을 막고 3, 4공을 연다.", "④ 1, 2, 3, 4공을 모두 막는다."],
+        answer: 1,
+        feedback: { correct: "정답! 제1공(뒷구멍)만 막으면 '황' 소리가 나. 딱 하나만!", wrong: "황 = 제1공 하나만 막는 거야! 나머지 구멍은 모두 열어둬." }
+      }
+    ]
+  }
+];
+
+// 최종 문제 (Q20)
+const FINAL_QUESTION = {
+  narrative: "방 전체가 흔들린다… 모든 것을 합쳐라…",
+  question: "🚪 [최종 탈출 암호] '중'을 연주할 때 막는 구멍의 수(A)와, '태'를 연주할 때 막는 구멍의 수(B)를 합친 숫자는?",
+  options: ["① 3", "② 4", "③ 5", "④ 6"],
+  answer: 1,
+  feedback: { correct: "중은 4개(1,2,3,4공)를 막고, 태는 구멍을 하나도 막지 않아(0개). 4+0=4! 🎉 탈출 성공!!", wrong: "중은 1·2·3·4공 전부 막아 4개, 태는 구멍을 전혀 막지 않아 0개. 4+0=4!" }
+};
+
+// ============================================================
+// ===== 게임 상태 관리 =====
+// ============================================================
+let gameState = {
+  stage: 0,         // 현재 단계 (1~3)
+  questionIndex: 0, // 현재 단계 내 문제 번호
+  score: 0,         // 점수
+  totalAnswered: 0, // 전체 답한 문제 수
+  totalQuestions: 20,
+  timerInterval: null,
+  timeLeft: 600,    // 10분 = 600초
+  answered: false,  // 현재 문제 답 선택 여부
+  isFinalQuestion: false
+};
+
+// ============================================================
+// ===== 화면 전환 함수 =====
+// ============================================================
+
+/**
+ * 특정 화면만 보이게 하는 함수
+ * @param {string} screenId - 보여줄 화면의 id
+ */
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+}
+
+// ============================================================
+// ===== 타이머 함수 =====
+// ============================================================
+
+/** 타이머 시작 */
+function startTimer() {
+  clearInterval(gameState.timerInterval);
+  gameState.timerInterval = setInterval(() => {
+    gameState.timeLeft--;
+    updateTimerDisplay();
+    if (gameState.timeLeft <= 0) {
+      clearInterval(gameState.timerInterval);
+      gameOver();
+    }
+  }, 1000);
+}
+
+/** 타이머 표시 업데이트 */
+function updateTimerDisplay() {
+  const minutes = Math.floor(gameState.timeLeft / 60);
+  const seconds = gameState.timeLeft % 60;
+  const display = `⏳ ${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+  const el = document.getElementById('timer-display');
+  el.textContent = display;
+  // 2분 이하일 때 깜빡임
+  if (gameState.timeLeft <= 120) el.classList.add('urgent');
+  else el.classList.remove('urgent');
+}
+
+// ============================================================
+// ===== 진행 바 업데이트 =====
+// ============================================================
+
+/** 진행 바 업데이트 */
+function updateProgressBar() {
+  const percent = (gameState.totalAnswered / gameState.totalQuestions) * 100;
+  document.getElementById('progress-bar').style.width = percent + '%';
+}
+
+/** 점수 표시 업데이트 */
+function updateScoreDisplay() {
+  document.getElementById('score-display').textContent = `점수: ${gameState.score}`;
+}
+
+// ============================================================
+// ===== 게임 시작 =====
+// ============================================================
+
+/** 게임 시작 */
+function startGame() {
+  // HUD 보이기
+  document.getElementById('hud').classList.add('visible');
+  // 타이머 시작
+  startTimer();
+  // 1단계 스토리 화면으로
+  gameState.stage = 1;
+  showStoryScreen(1);
+}
+
+// ============================================================
+// ===== 스토리 화면 =====
+// ============================================================
+
+/** 스토리 화면 표시 */
+function showStoryScreen(stageNum) {
+  const stage = STAGES[stageNum - 1];
+  document.getElementById('story-stage-num').textContent = `[ ${stageNum}단계 ]`;
+  document.getElementById('story-title').textContent = stage.title;
+  document.getElementById('story-deco').textContent = stage.deco;
+  // 스토리 텍스트 (HTML 허용)
+  document.getElementById('story-text').innerHTML = stage.story.replace(/\n/g, '<br>');
+  document.getElementById('hud-stage-label').textContent = `${stageNum}단계: ${stage.title}`;
+  showScreen('screen-story');
+}
+
+/** 스토리 확인 후 퀴즈 시작 */
+function startStageQuiz() {
+  gameState.questionIndex = 0;
+  gameState.answered = false;
+  showQuizScreen();
+}
+
+// ============================================================
+// ===== 퀴즈 화면 =====
+// ============================================================
+
+/** 퀴즈 화면 표시 */
+function showQuizScreen() {
+  const stage = STAGES[gameState.stage - 1];
+  const q = stage.questions[gameState.questionIndex];
+  const totalInStage = stage.questions.length;
+
+  // 배지, 번호 업데이트
+  document.getElementById('quiz-badge').textContent = `${gameState.stage}단계`;
+  document.getElementById('quiz-qnum').textContent =
+    `Q${gameState.questionIndex + 1} / ${totalInStage}`;
+
+  // 내러티브
+  document.getElementById('quiz-narrative').textContent = q.narrative || '';
+
+  // 문제 텍스트
+  document.getElementById('quiz-question').textContent = q.question;
+
+  // 선택지 버튼 생성
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(idx, btn, q);
+    grid.appendChild(btn);
+  });
+
+  // 피드백 초기화
+  const fb = document.getElementById('feedback-box');
+  fb.className = 'feedback-box';
+  fb.innerHTML = '';
+
+  // 다음 버튼 숨기기
+  const nextBtn = document.getElementById('btn-next');
+  nextBtn.className = 'btn-next';
+
+  // 카드 초기화
+  const card = document.getElementById('quiz-card');
+  card.className = 'quiz-card';
+  gameState.answered = false;
+
+  // 3단계 마지막 문제 스타일
+  if (gameState.stage === 3 && gameState.isFinalQuestion) {
+    document.getElementById('screen-quiz').classList.add('final-stage');
+  } else {
+    document.getElementById('screen-quiz').classList.remove('final-stage');
+  }
+
+  showScreen('screen-quiz');
+}
+
+// ============================================================
+// ===== 답 선택 처리 =====
+// ============================================================
+
+/** 답 선택 처리 */
+function selectAnswer(selectedIdx, clickedBtn, question) {
+  if (gameState.answered) return; // 이미 답했으면 무시
+  gameState.answered = true;
+
+  const isCorrect = selectedIdx === question.answer;
+  const allBtns = document.querySelectorAll('.option-btn');
+
+  // 모든 버튼 일단 비활성화
+  allBtns.forEach(btn => btn.disabled = true);
+
+  const card = document.getElementById('quiz-card');
+  const fb = document.getElementById('feedback-box');
+
+  if (isCorrect) {
+    // ✅ 정답 — 다음 버튼 표시
+    clickedBtn.classList.add('correct');
+    card.classList.add('glow-green');
+    fb.className = 'feedback-box correct show';
+    fb.innerHTML = `<span class="feedback-icon">✅</span>${question.feedback.correct}`;
+    gameState.score += 5;
+    gameState.totalAnswered++;
+    playCorrectSound();
+    updateProgressBar();
+    updateScoreDisplay();
+
+    // 다음 버튼 표시
+    const nextBtn = document.getElementById('btn-next');
+    nextBtn.className = 'btn-next show';
+    const stage = STAGES[gameState.stage - 1];
+    if (gameState.isFinalQuestion) {
+      nextBtn.textContent = '🎉 탈출 성공!';
+      nextBtn.onclick = () => victory();
+    } else {
+      const isLastInStage = gameState.questionIndex === stage.questions.length - 1;
+      if (isLastInStage && gameState.stage < 3)      nextBtn.textContent = '단계 클리어! →';
+      else if (isLastInStage && gameState.stage === 3) nextBtn.textContent = '최종 도전! →';
+      else                                             nextBtn.textContent = '다음 문제 →';
+      nextBtn.onclick = nextQuestion;
+    }
+
+  } else {
+    // ❌ 오답 — 제재 후 틀린 버튼만 잠그고 나머지 다시 활성화
+    clickedBtn.classList.add('wrong');
+    card.classList.add('shake');
+    fb.className = 'feedback-box wrong show';
+    fb.innerHTML = `<span class="feedback-icon">❌</span>${question.feedback.wrong} <strong style="color:#ff9999">⏳ -10초!</strong>`;
+    playWrongSound();
+    applyTimePenalty(); // ⏳ -10초 제재 + 시각효과
+
+    setTimeout(() => {
+      card.classList.remove('shake');
+      // 틀린 버튼은 영구 비활성, 나머지는 다시 선택 가능
+      allBtns.forEach(btn => {
+        if (btn !== clickedBtn) {
+          btn.disabled = false;
+        }
+      });
+      gameState.answered = false; // 다시 답 선택 허용
+    }, 900);
+  }
+}
+
+// ============================================================
+// ===== 오답 제재: -10초 + 시각 효과 =====
+// ============================================================
+
+/**
+ * 오답 시 10초 감소 + 화면 플래시 + 팝업 + 타이머 흔들림
+ */
+function applyTimePenalty() {
+  const PENALTY = 10; // 깎을 초
+
+  // 타이머에서 10초 빼기 (0 이하 방지)
+  gameState.timeLeft = Math.max(0, gameState.timeLeft - PENALTY);
+  updateTimerDisplay();
+
+  // 1) 붉은 화면 플래시
+  const flash = document.getElementById('penalty-flash');
+  flash.classList.remove('flash');
+  void flash.offsetWidth; // reflow 트릭으로 애니메이션 재시작
+  flash.classList.add('flash');
+
+  // 2) -10초 팝업 텍스트
+  const popup = document.getElementById('penalty-popup');
+  popup.classList.remove('show');
+  void popup.offsetWidth;
+  popup.classList.add('show');
+
+  // 3) 타이머 흔들림
+  const timerEl = document.getElementById('timer-display');
+  timerEl.classList.remove('penalty-shake');
+  void timerEl.offsetWidth;
+  timerEl.classList.add('penalty-shake');
+
+  // 4) HUD 테두리 번쩍
+  const hud = document.getElementById('hud');
+  hud.classList.remove('penalty-border');
+  void hud.offsetWidth;
+  hud.classList.add('penalty-border');
+
+  // 애니메이션 종료 후 클래스 정리
+  setTimeout(() => {
+    flash.classList.remove('flash');
+    popup.classList.remove('show');
+    timerEl.classList.remove('penalty-shake');
+    hud.classList.remove('penalty-border');
+  }, 1000);
+
+  // 페널티 직후 타이머가 0이면 게임오버
+  if (gameState.timeLeft <= 0) {
+    setTimeout(() => {
+      clearInterval(gameState.timerInterval);
+      gameOver();
+    }, 800);
+  }
+}
+
+
+
+/** 다음 문제로 이동 */
+function nextQuestion() {
+  const stage = STAGES[gameState.stage - 1];
+  gameState.questionIndex++;
+
+  if (gameState.questionIndex < stage.questions.length) {
+    // 같은 단계 내 다음 문제
+    showQuizScreen();
+  } else {
+    // 단계 내 모든 문제 풀었음
+    if (gameState.stage < 3) {
+      showClearScreen();
+    } else {
+      // 3단계 완료 → 최종 문제
+      showFinalScreen();
+    }
+  }
+}
+
+// ============================================================
+// ===== 클리어 화면 =====
+// ============================================================
+
+/** 단계 클리어 화면 표시 */
+function showClearScreen() {
+  const stage = STAGES[gameState.stage - 1];
+  document.getElementById('clear-icon').textContent = stage.clearIcon;
+  document.getElementById('clear-title').textContent = stage.clearTitle;
+  document.getElementById('clear-text').innerHTML = stage.clearText.replace(/\n/g, '<br>');
+  showScreen('screen-clear');
+}
+
+/** 클리어 후 다음 단계로 */
+function proceedAfterClear() {
+  gameState.stage++;
+  gameState.questionIndex = 0;
+  document.getElementById('hud-stage-label').textContent =
+    `${gameState.stage}단계: ${STAGES[gameState.stage - 1].title}`;
+  showStoryScreen(gameState.stage);
+}
+
+// ============================================================
+// ===== 최종 문제 =====
+// ============================================================
+
+/** 최종 화면 표시 */
+function showFinalScreen() {
+  showScreen('screen-final');
+}
+
+/** 최종 문제 시작 */
+function startFinalQuestion() {
+  gameState.isFinalQuestion = true;
+
+  const q = FINAL_QUESTION;
+  document.getElementById('quiz-badge').textContent = '최종';
+  document.getElementById('quiz-qnum').textContent = 'Q20 / 20';
+  document.getElementById('quiz-narrative').textContent = q.narrative;
+  document.getElementById('quiz-question').textContent = q.question;
+
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(idx, btn, q);
+    grid.appendChild(btn);
+  });
+
+  const fb = document.getElementById('feedback-box');
+  fb.className = 'feedback-box';
+  fb.innerHTML = '';
+
+  const nextBtn = document.getElementById('btn-next');
+  nextBtn.className = 'btn-next';
+
+  const card = document.getElementById('quiz-card');
+  card.className = 'quiz-card';
+  document.getElementById('screen-quiz').classList.add('final-stage');
+
+  gameState.answered = false;
+  showScreen('screen-quiz');
+}
+
+// ============================================================
+// ===== 승리 / 패배 처리 =====
+// ============================================================
+
+/** 승리 */
+function victory() {
+  clearInterval(gameState.timerInterval);
+  document.getElementById('hud').classList.remove('visible');
+
+  // 남은 시간 표시
+  const mins = Math.floor(gameState.timeLeft / 60);
+  const secs = gameState.timeLeft % 60;
+  const timeStr = `${String(mins).padStart(2,'0')}분 ${String(secs).padStart(2,'0')}초`;
+
+  document.getElementById('victory-score').innerHTML =
+    `⏳ 남은 시간: <strong style="color:var(--gold);font-size:1.3em">${timeStr}</strong>`;
+
+  showScreen('screen-victory');
+  launchConfetti();
+  playVictorySound(); // 🎵 밝은 엔딩 효과음
+}
+
+/** 게임 오버 (시간 초과) */
+function gameOver() {
+  clearInterval(gameState.timerInterval);
+  document.getElementById('hud').classList.remove('visible');
+  document.getElementById('gameover-score').innerHTML =
+    `💀 점수: ${gameState.score}점 · ${gameState.totalAnswered}문제 완료`;
+  showScreen('screen-gameover');
+}
+
+/** 게임 리셋 */
+function resetGame() {
+  clearInterval(gameState.timerInterval);
+  gameState = {
+    stage: 0,
+    questionIndex: 0,
+    score: 0,
+    totalAnswered: 0,
+    totalQuestions: 20,
+    timerInterval: null,
+    timeLeft: 600,
+    answered: false,
+    isFinalQuestion: false
+  };
+  document.getElementById('progress-bar').style.width = '0%';
+  document.getElementById('score-display').textContent = '점수: 0';
+  document.getElementById('timer-display').textContent = '⏳ 10:00';
+  document.getElementById('timer-display').classList.remove('urgent');
+  document.getElementById('hud').classList.remove('visible');
+  document.getElementById('confetti-container').innerHTML = '';
+  document.getElementById('screen-quiz').classList.remove('final-stage');
+  showScreen('screen-intro');
+}
+
+// ============================================================
+// ===== 폭죽 애니메이션 =====
+// ============================================================
+
+/** 폭죽 파티클 생성 */
+function launchConfetti() {
+  const container = document.getElementById('confetti-container');
+  container.innerHTML = '';
+  const colors = ['#cc0000','#c8a84b','#00cc66','#ffffff','#ff6600','#0088ff'];
+
+  for (let i = 0; i < 80; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+    piece.style.animationDelay = (Math.random() * 1.5) + 's';
+    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+    piece.style.width = (Math.random() * 8 + 4) + 'px';
+    piece.style.height = (Math.random() * 14 + 6) + 'px';
+    container.appendChild(piece);
+  }
+
+  // 3초 후 정리
+  setTimeout(() => { container.innerHTML = ''; }, 5000);
+}
+
+// ============================================================
+// ===== 효과음 (Web Audio API) =====
+// ============================================================
+
+/** 오디오 컨텍스트 생성 */
+function getAudioCtx() {
+  if (!window._audioCtx) {
+    window._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return window._audioCtx;
+}
+
+/** 정답 효과음 (단소 느낌: 맑고 높은 음) */
+function playCorrectSound() {
+  try {
+    const ctx = getAudioCtx();
+    const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.4);
+      osc.start(ctx.currentTime + i * 0.1);
+      osc.stop(ctx.currentTime + i * 0.1 + 0.4);
+    });
+  } catch(e) {}
+}
+
+/** 오답 효과음 (둔탁하고 낮은 음) */
+function playWrongSound() {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+  } catch(e) {}
+}
+
+/**
+ * 🎵 엔딩 효과음 — 밝고 경쾌한 단소 느낌 팡파레
+ * 단소의 5음(중·임·무·황·태)을 모티프로 한 상승 멜로디
+ */
+function playVictorySound() {
+  try {
+    const ctx = getAudioCtx();
+    // 밝게 상승하는 멜로디 음표 [주파수, 시작시간, 길이]
+    const melody = [
+      [392, 0.0, 0.18],   // G4 (중)
+      [523, 0.18, 0.18],  // C5 (임)
+      [659, 0.36, 0.18],  // E5 (무)
+      [784, 0.54, 0.25],  // G5 (황)
+      [1047, 0.79, 0.4],  // C6 (태) — 가장 높게, 길게
+      [784, 1.19, 0.15],
+      [1047, 1.34, 0.6],  // 마지막 여운
+    ];
+    melody.forEach(([freq, start, dur]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+      gain.gain.setValueAtTime(0, ctx.currentTime + start);
+      gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + start + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+      osc.start(ctx.currentTime + start);
+      osc.stop(ctx.currentTime + start + dur + 0.05);
+    });
+  } catch(e) {}
+}
+
+// ============================================================
+// ===== 초기화 =====
+// ============================================================
+showScreen('screen-intro');
+</script>
+</body>
+</html>
